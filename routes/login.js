@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const { success, fail } = require('../utils/response');
 const { BadRequestError, NotFoundError, UnauthorizedError } = require('../utils/errors');
 const { generateId } = require('../utils/generateId');
+const { mailProducer } = require('../utils/rabbitmq');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
@@ -62,6 +63,19 @@ router.post('/register', async function(req, res, next) {
     }
     const user = await User.create(body);
     delete user.dataValues.password;
+
+    const msg = {
+      to: user.email,
+      subject: '注册成功通知',
+      html: `
+        您好，<span>${user.username}</span><br/><br/>
+        恭喜您注册成功！<br/><br/>
+        请访问...了解更多<br/>
+        app
+      `
+    };
+
+    await mailProducer(msg);
   
     success(res,'创建用户成功。', user, 201);
   } catch(error){
