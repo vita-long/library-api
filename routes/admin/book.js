@@ -4,12 +4,18 @@ const { Book } = require('../../models');
 const { Op } = require('sequelize');
 const { generateId } = require('../../utils/generateId');
 const { NotFoundError, success, fail } = require('../../utils/response');
+const { getKey, setKey } = require('../../utils/redis');
 
+let CACHE_KEY_PREFIX = 'books';
 // 查询书籍列表-模糊搜索
 router.get('/', async function(req, res, next) {
   try {
     const query = req.query;
     const { current, pageSize, offset } = getPagination(query);
+
+    const cacheKey = `${CACHE_KEY_PREFIX}_current_pageSize_offset`;
+
+    let books = await getKey(cacheKey);
 
     const condition = {
       order: [['id', 'DESC']],
@@ -19,8 +25,11 @@ router.get('/', async function(req, res, next) {
     if (query.bookName) {
       condition.where = vague(query)
     }
-    const { count, rows } = await Book.findAndCountAll(condition);
-    success(res, { list: rows, total: count, current, pageSize })
+    if (!books) {
+      books = await Book.findAndCountAll(condition);
+      await setKey(cacheKey, books);
+    }
+    success(res, { list: books.rows, total: books.count, current, pageSize })
   } catch (error) {
     fail(res, error)
   }
