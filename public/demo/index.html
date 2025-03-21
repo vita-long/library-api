@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const token =
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0MjUyOTc0MCwiZXhwIjoxNzQyNTMzMzQwfQ.gGHdOtaNDiz1FjbUgJ0m4FoM9fCd3QdMTXjeIV6YF9M';
+
+      // 建立SSE连接
+      const eventSource = new EventSource(`http://localhost:4000/books/updates?token=${token}`);
+      eventSource.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        console.log(data);
+      };
+    </script>
+  </body>
+</html>

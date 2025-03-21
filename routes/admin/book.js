@@ -5,6 +5,11 @@ const { Op } = require('sequelize');
 const { generateId } = require('../../utils/generateId');
 const { NotFoundError, success, fail } = require('../../utils/response');
 const { getKey, setKey } = require('../../utils/redis');
+const { sendNotification } = require('../../utils/sse');
+const { formatParams } = require('../../utils/formatParams');
+
+// 存储所有连接的客户端
+let clients = [];
 
 let CACHE_KEY_PREFIX = 'books';
 // 查询书籍列表-模糊搜索
@@ -36,14 +41,14 @@ router.get('/', async function(req, res, next) {
 });
 
 // 查询书籍详情
-router.get('/:id', async function(req, res, next) {
-  try{
-    const book = await getBook(req);
-    success(res, book, '查询成功')
-  }catch(error) {
-    fail(res, error)
-  }
-})
+// router.get('/:id', async function(req, res, next) {
+//   try{
+//     const book = await getBook(req);
+//     success(res, book, '查询成功')
+//   }catch(error) {
+//     fail(res, error)
+//   }
+// })
 
 // 新增书籍
 router.post('/', async function(req, res, next) {
@@ -78,12 +83,44 @@ router.delete('/:id', async function(req, res, next) {
 router.put('/:id', async function(req, res, next) {
   try{
     const book = await getBook(req);
-    const body = filterBody(req);
+    const body = filterUpdateBody(req);
     await book.update(body);
-    success(res, book, '更新书籍成功')
+    success(res, book, '更新书籍成功');
+    sendNotification(clients, { type: 'update-book', msg: `${book.bookName}更新啦` });
   }catch(error) {
     fail(res, error)
   }
+})
+
+// 更新消息通知
+router.get('/updates', async function(req, res, next) {
+  // 设置 SSE 头
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive'
+  });
+
+  res.write('event: connect\n');  // 添加事件类型
+  res.write('data: Connected\n\n');
+
+  const clientId = Date.now();
+  const newClient = {
+    id: clientId,
+    res
+  };
+
+  // 添加自动清理机制
+  const removeClient = () => {
+    clients = clients.filter(c => c.id !== clientId);
+    console.log(`Client ${clientId} disconnected`);
+  };
+
+  req.on('close', removeClient);    // 连接关闭时
+  res.on('error', removeClient);    // 发生错误时
+  res.on('finish', removeClient);   // 流结束时
+
+  clients.push(newClient);
 })
 
 async function getBook(req) {
@@ -106,6 +143,16 @@ function filterBody(req) {
     category: req.body.category,
     content: req.body.content
   };
+}
+
+function filterUpdateBody(req) {
+  return formatParams({
+    bookName: req.body.bookName,
+    author: req.body.author,
+    avator: req.body.author,
+    category: req.body.category,
+    content: req.body.content
+  });
 }
 
 // 分页信息
