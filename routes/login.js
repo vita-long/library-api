@@ -7,8 +7,30 @@ const { success, fail } = require('../utils/response');
 const { BadRequestError, NotFoundError, UnauthorizedError } = require('../utils/errors');
 const { generateId } = require('../utils/generateId');
 const { mailProducer } = require('../utils/rabbitmq');
+const svgCaptcha = require('svg-captcha');
 const jwt = require('jsonwebtoken');
+const { setKey, getKey } = require('../utils/redis');
 require('dotenv').config();
+
+router.get('/captcha', (req, res, next) => {
+  try {
+    const captcha = svgCaptcha.createMathExpr({
+      size: 4,
+      ignoreChars: '0o1i',
+      noise: 3,
+      color: true,
+      background: '#f0f2f5'
+    });
+    
+    // 存储到Redis，有效期5分钟
+    setKey(`captcha:${req.sessionID}`,  captcha.text, 300)
+    
+    res.type('svg');
+    success(res, { captcha: captcha.data }, '')
+  } catch(error) {
+    fail(res, error)
+  }
+})
 
 // 登录
 router.post('/login', async function(req, res, next) {
@@ -43,7 +65,7 @@ router.post('/login', async function(req, res, next) {
       userId: user.id
     }, process.env.SECRET, { expiresIn: '1h' })
     
-    success(res, { token }, '登录成功')
+    success(res, { token, user }, '登录成功')
   } catch (error) {
     fail(res, error)
   }
@@ -51,6 +73,15 @@ router.post('/login', async function(req, res, next) {
 
 // 用户注册
 router.post('/register', async function(req, res, next) {
+
+  const { captcha } = req.body;
+
+  // 验证码校验
+  const storedCaptcha = await getKey(`captcha:${req.sessionID}`);
+  if (!storedCaptcha || storedCaptcha !== captcha.toLowerCase()) {
+    return res.status(400).json({ message: '验证码错误' });
+  }
+
   try {
     const body = {
       userCode: generateId('user_'),
