@@ -15,11 +15,13 @@ const app = express();
 // 处理跨域
 app.options('*', cors({
   origin: 'http://localhost:3000',
-  credentials: true
+  credentials: true,
+  methods: ['POST', 'PUT', 'GET', 'DELETE']
 }));
 app.use(cors({
   origin: 'http://localhost:3000',
-  credentials: true
+  credentials: true,
+  methods: ['POST', 'PUT', 'GET', 'DELETE']
 }));
 
 app.use(logger('dev'));
@@ -35,7 +37,8 @@ app.use(session({
   saveUninitialized: true,
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Lax' 
+    sameSite: 'Lax',
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 

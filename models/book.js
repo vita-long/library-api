@@ -37,18 +37,16 @@ module.exports = (sequelize, DataTypes) => {
     author: {
       type: DataTypes.STRING,
     },
-    // 分类
-    category: {
-      type: DataTypes.STRING
-    },
     // 封面链接
-    avator: {
+    cover: {
       type: DataTypes.STRING
     },
-    content: DataTypes.TEXT
+    content: DataTypes.TEXT,
+    description: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Book',
+    // paranoid: true,
     underscored: true,
     timestamps: true
   });
