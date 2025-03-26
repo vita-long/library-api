@@ -51,6 +51,16 @@ router.get('/', async function(req, res, next) {
   }
 });
 
+// 查询单个书籍
+router.get('/:id', async function(req, res, next) {
+  try{
+    const book = await getBook(req);
+    success(res, book, '查询成功')
+  }catch(error) {
+    fail(res, error)
+  }
+})
+
 // 新增书籍
 router.post('/', async function(req, res, next) {
   try{
@@ -69,13 +79,26 @@ router.post('/', async function(req, res, next) {
 })
 
 // 删除书籍
-// /books/{id}
-router.delete('/:id', async function(req, res, next) {
+router.delete('/', async function(req, res, next) {
   try{
-    const book = await getBook(req);
-    await book.destroy();
+    // 获取 ID 数组
+    const ids = req.query.id 
+      ? req.query.id.split(',').map(id => parseInt(id.trim()))
+      : req.body.ids;
+    console.log(ids);
+    const result = await Book.destroy({
+      where: {
+        id: {
+          [Op.in]: ids
+        }
+      }
+    });
+    // 处理结果
+    if (result === 0) {
+      return res.json({ message: 'No records found to delete' });
+    }
     await delKey(CACHE_KEY_PREFIX);
-    success(res, book)
+    success(res, null, '删除成功');
   }catch(error) {
     fail(res, error)
   }

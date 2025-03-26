@@ -7,19 +7,24 @@ const cors = require('cors');
 const { consumer } = require('./utils/consumer');
 const { routers } = require('./routes');
 const { csrfProtect } = require('./utils/csrf');
+const { CSRF_TOKEN_EXPIRATION } = require('./constants');
 
 require('dotenv').config();
 
 const app = express();
 
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? ['https://example.com', 'https://www.example.com']
+  : ['http://localhost:3000', 'http://127.0.0.1:3000', '*'];
+
 // 处理跨域
 app.options('*', cors({
-  origin: 'http://localhost:3000',
+  origin: allowedOrigins,
   credentials: true,
   methods: ['POST', 'PUT', 'GET', 'DELETE']
 }));
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: allowedOrigins,
   credentials: true,
   methods: ['POST', 'PUT', 'GET', 'DELETE']
 }));
@@ -38,7 +43,7 @@ app.use(session({
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'Lax',
-    maxAge: 24 * 60 * 60 * 1000
+    maxAge: CSRF_TOKEN_EXPIRATION
   }
 }));
 

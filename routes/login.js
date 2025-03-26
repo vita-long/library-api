@@ -36,6 +36,7 @@ router.get('/captcha', (req, res, next) => {
 router.post('/login', async function(req, res, next) {
   try {
     const { username, password } = req.body;
+
     if (!username) {
       throw new BadRequestError('请填写用户名');
     }
@@ -52,8 +53,14 @@ router.post('/login', async function(req, res, next) {
     }
 
     const user = await User.findOne(condition);
+
     if(!user) {
-      throw new NotFoundError('用户不存在');
+      res.status(200).json({
+        code: 3,
+        data: null,
+        msg: '用户不存在'
+      })
+      return ;
     }
 
     const isPasswordvalid = bcrypt.compareSync(password,user.password);
@@ -65,7 +72,7 @@ router.post('/login', async function(req, res, next) {
       userId: user.id
     }, process.env.SECRET, { expiresIn: '1h' })
     
-    success(res, { token, user }, '登录成功')
+    success(res, { token, user }, '登录成功');
   } catch (error) {
     fail(res, error)
   }

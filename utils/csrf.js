@@ -1,10 +1,15 @@
 const csrf = require('csrf');
 const { CSRF_TOKEN_EXPIRATION } = require('../constants');
+const { getKey, setKey } = require('./redis');
 const tokens = new csrf();
 
+const CSRF_TOKEN_KEY = 'csrf_token'
+
 const csrfProtect = (app) => {
-  app.use((req, res, next) => {
-    let csrfData = req.session.csrfData;
+  app.use(async (req, res, next) => {
+
+    // let csrfData = req.session.csrfData;
+    let csrfData = await getKey(CSRF_TOKEN_KEY);
     const now = Date.now();
 
     if (!csrfData || now - csrfData.timestamp > CSRF_TOKEN_EXPIRATION) {
@@ -12,8 +17,10 @@ const csrfProtect = (app) => {
         secret: tokens.secretSync(),
         timestamp: now
       };
-      req.session.csrfData = csrfData;
+      // req.session.csrfData = csrfData;
+      await setKey(CSRF_TOKEN_KEY, csrfData, CSRF_TOKEN_EXPIRATION)
     }
+
     const token = tokens.create(csrfData.secret);
 
     res.header('Access-Control-Allow-Credentials', 'true');
@@ -31,5 +38,6 @@ const csrfProtect = (app) => {
 
 module.exports = {
   csrfProtect,
-  tokens
+  tokens,
+  CSRF_TOKEN_KEY
 }
