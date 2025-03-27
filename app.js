@@ -13,6 +13,11 @@ require('dotenv').config();
 
 const app = express();
 
+app.use((req, res, next) => {
+  req.io = app.get('io'); // 新增
+  next();
+})
+
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? ['https://example.com', 'https://www.example.com']
   : ['http://localhost:3000', 'http://127.0.0.1:3000', '*'];
