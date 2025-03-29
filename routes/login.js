@@ -11,6 +11,7 @@ const svgCaptcha = require('svg-captcha');
 const jwt = require('jsonwebtoken');
 const { setKey, getKey } = require('../utils/redis');
 require('dotenv').config();
+const { v4 } = require('uuid');
 
 router.get('/captcha', (req, res, next) => {
   try {
@@ -93,6 +94,7 @@ router.post('/register', async function(req, res, next) {
     const body = {
       userCode: generateId('user_'),
       userName:req.body.userName,
+      streamKey: v4(),
       password:req.body.password,
       email:req.body.email || '',
       avator: req.body.avator || '',

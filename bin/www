@@ -6,8 +6,10 @@
 
 const app = require('../app');
 const debug = require('debug')('library-api:server');
+const { nms } = require('../server/rtmp-server');
 const http = require('http');
 const { initializeSocket } = require('../config/socket');
+
 
 /**
  * Get port from environment and store in Express.
@@ -21,6 +23,8 @@ app.set('port', port);
  */
 
 const server = http.createServer(app);
+
+nms.run();
 
 app.set('io', initializeSocket(server)); 
 

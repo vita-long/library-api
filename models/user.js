@@ -54,6 +54,7 @@ module.exports = (sequelize, DataTypes) => {
         }
       }
     },
+    streamKey: DataTypes.STRING,
     email: DataTypes.STRING,
     avator: DataTypes.STRING,
     sex: DataTypes.INTEGER, // 0 1 2

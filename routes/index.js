@@ -9,6 +9,8 @@ const Upload = require('./upload');
 
 const Login = require('./login');
 
+const LiveRoom = require('./live');
+
 const auth = require('../middleware/auth');
 const csrf = require('../middleware/csrf');
 const upload = require('../middleware/upload');
@@ -21,6 +23,7 @@ function routers(app) {
   app.use('/categories', auth, csrf, Category);
   app.use('/bookCategory', auth, csrf, BookCategory);
   app.use('/comment', auth, csrf, Comment);
+  app.use('/liveRoom', auth, csrf, LiveRoom);
   app.use('/user', Login);
 
   app.use('/upload', upload, Upload);
