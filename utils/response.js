@@ -7,7 +7,7 @@ const { NotFoundError } = require('./errors');
  * @param {*} msg 
  * @param {*} code 
  */
-function success(res, data, msg, code=200) {
+function success(res, data, msg='', code=200) {
   res.status(code).json({
     code: 0,
     data,

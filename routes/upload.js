@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { File } = require('../models');
 const { singleUpload, decodeFileName } = require('../config/upload');
+const { success, fail } = require('../utils/response');
 
 // ========== 单文件上传接口 ==========
 router.post('/single', singleUpload, async (req, res) => {
@@ -18,17 +19,11 @@ router.post('/single', singleUpload, async (req, res) => {
       size: req.file.size,
       path: req.file.path
     });
-    res.json({
-      message: '文件上传成功',
-      file: fileRecord
-    });
+
+    success(res, fileRecord);
 
   } catch (error) {
-    console.error('上传错误:', error);
-    res.status(500).json({ 
-      error: '服务器错误',
-      details: error.message 
-    });
+    fail(res, error)
   }
 });
 
