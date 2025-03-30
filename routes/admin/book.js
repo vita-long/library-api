@@ -112,8 +112,8 @@ router.put('/:id', async function(req, res, next) {
     const body = filterUpdateBody(req);
     await book.update(body);
     await delKey(CACHE_KEY_PREFIX);
+    // sendNotification(clients, { type: 'update-book', msg: `${book.bookName}更新啦` });
     success(res, book, '更新书籍成功');
-    sendNotification(clients, { type: 'update-book', msg: `${book.bookName}更新啦` });
   }catch(error) {
     fail(res, error)
   }

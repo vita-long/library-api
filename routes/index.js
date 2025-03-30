@@ -6,6 +6,7 @@ const Category = require('./admin/category');
 const BookCategory = require('./admin/book-category');
 const Comment = require('./admin/comment');
 const Upload = require('./upload');
+const Ocr = require('./ocr');
 
 const Login = require('./login');
 
@@ -14,6 +15,8 @@ const LiveRoom = require('./live');
 const auth = require('../middleware/auth');
 const csrf = require('../middleware/csrf');
 const upload = require('../middleware/upload');
+
+const PREFIX = '/api';
 
 function routers(app) {
   app.use('/', index);
@@ -27,6 +30,8 @@ function routers(app) {
   app.use('/user', Login);
 
   app.use('/upload', upload, Upload);
+  app.use(`${PREFIX}/ocr`, auth, csrf, Ocr);
+
 }
 
 module.exports = {

@@ -13,11 +13,6 @@ require('dotenv').config();
 
 const app = express();
 
-app.use((req, res, next) => {
-  req.io = app.get('io'); // 新增
-  next();
-})
-
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? ['https://example.com', 'https://www.example.com']
   : ['http://localhost:3000', 'http://127.0.0.1:3000', '*'];
@@ -39,6 +34,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'uploads')));
+
+app.use((req, res, next) => {
+  req.io = app.get('io'); // 新增
+  next();
+})
 
 // 会话配置（CSRF 依赖会话）
 app.use(session({

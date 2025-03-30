@@ -7,7 +7,7 @@ function sendNotification(clients, message) {
   });
 
   // 安全遍历方法（使用数组副本）
-  clients.slice().forEach(client => {
+  clients?.slice()?.forEach(client => {
     try {
       if (!client.res.writableEnded) {
         client.res.write(`event: update\n`);  // 添加事件类型

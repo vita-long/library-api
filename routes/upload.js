@@ -4,6 +4,8 @@ const { File } = require('../models');
 const { singleUpload, decodeFileName } = require('../config/upload');
 const { success, fail } = require('../utils/response');
 
+const { SERVER_URL } = require('../constants');
+
 // ========== 单文件上传接口 ==========
 router.post('/single', singleUpload, async (req, res) => {
   try {
@@ -17,10 +19,10 @@ router.post('/single', singleUpload, async (req, res) => {
       originalname: decodeFileName(req.file.originalname),
       mimetype: req.file.mimetype,
       size: req.file.size,
-      path: req.file.path
+      path: `${SERVER_URL}/${req.file.filename}`
     });
 
-    success(res, fileRecord);
+    success(res, { file: fileRecord });
 
   } catch (error) {
     fail(res, error)
@@ -41,5 +43,7 @@ router.post('/single', singleUpload, async (req, res) => {
 //     files: files
 //   });
 // });
+
+
 
 module.exports = router;

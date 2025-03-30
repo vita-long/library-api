@@ -59,7 +59,7 @@ function fail(res, error) {
 
   if(error.name=== 'TokenExpiredError') {
     return res.status(401).json({
-      code: 401,
+      code: 10000401,
       msg: 'token已过期',
       errors: [error.message]
     });
