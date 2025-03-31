@@ -15,7 +15,7 @@ const app = express();
 
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? ['https://example.com', 'https://www.example.com']
-  : ['http://localhost:3000', 'http://127.0.0.1:3000', '*'];
+  : ['http://localhost:8011', 'http://127.0.0.1:8011', '*'];
 
 // 处理跨域
 app.options('*', cors({

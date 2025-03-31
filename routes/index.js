@@ -7,6 +7,7 @@ const BookCategory = require('./admin/book-category');
 const Comment = require('./admin/comment');
 const Upload = require('./upload');
 const Ocr = require('./ocr');
+const OcrCar = require('./ocr-car');
 
 const Login = require('./login');
 
@@ -31,6 +32,7 @@ function routers(app) {
 
   app.use('/upload', upload, Upload);
   app.use(`${PREFIX}/ocr`, auth, csrf, Ocr);
+  app.use(`${PREFIX}/ocr-car`, upload, OcrCar);
 
 }
 
