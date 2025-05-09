@@ -62,7 +62,7 @@ app.use((req, res, next) => {
 });
 
 // 消费者监听
-consumer();
+// consumer();
 
 // 注册路由
 routers(app);
