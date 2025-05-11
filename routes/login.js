@@ -24,6 +24,7 @@ router.get('/captcha', (req, res, next) => {
     });
     
     // 存储到Redis，有效期5分钟
+    console.log(`captcha:${req.sessionID}`);
     setKey(`captcha:${req.sessionID}`,  captcha.text, 300)
     
     res.type('svg');
@@ -86,8 +87,9 @@ router.post('/register', async function(req, res, next) {
 
   // 验证码校验
   const storedCaptcha = await getKey(`captcha:${req.sessionID}`);
+  console.log('获取redis中的验证码：', storedCaptcha);
   if (!storedCaptcha || storedCaptcha !== captcha.toLowerCase()) {
-    return res.status(400).json({ message: '验证码错误' });
+    return res.status(400).json({ code: 400, message: '验证码错误' });
   }
 
   try {

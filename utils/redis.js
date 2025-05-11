@@ -10,7 +10,7 @@ const clientRedis = async () => {
   if(client) {
     return;
   }
-
+  console.log('开始连接');
   client = await createClient()
     .on('error', err => console.log('Redis Client Error', err))
     .connect();
@@ -21,6 +21,7 @@ const setKey = async (key, value, ttl = null) => {
   if(!client) {
     await clientRedis();
   }
+  console.log('设置redis-key', key);
   value = JSON.stringify(value);
   await client.set(key, value);
 
