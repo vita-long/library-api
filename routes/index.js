@@ -20,17 +20,17 @@ const upload = require('../middleware/upload');
 const PREFIX = '/api';
 
 function routers(app) {
-  app.use('/', index);
-  app.use('/books', auth, csrf, Book);
-  app.use('/authors', auth, csrf, Author);
-  app.use('/bookAuthor', auth, csrf, BookAuthor);
-  app.use('/categories', auth, csrf, Category);
-  app.use('/bookCategory', auth, csrf, BookCategory);
-  app.use('/comment', auth, csrf, Comment);
-  app.use('/liveRoom', auth, csrf, LiveRoom);
-  app.use('/user', Login);
+  app.use(`${PREFIX}/`, index);
+  app.use(`${PREFIX}/books`, auth, csrf, Book);
+  app.use(`${PREFIX}/authors`, auth, csrf, Author);
+  app.use(`${PREFIX}/bookAuthor`, auth, csrf, BookAuthor);
+  app.use(`${PREFIX}/categories`, auth, csrf, Category);
+  app.use(`${PREFIX}/bookCategory`, auth, csrf, BookCategory);
+  app.use(`${PREFIX}/comment`, auth, csrf, Comment);
+  app.use(`${PREFIX}/liveRoom`, auth, csrf, LiveRoom);
+  app.use(`${PREFIX}/user`, Login);
 
-  app.use('/upload', upload, Upload);
+  app.use(`${PREFIX}/upload`, upload, Upload);
   app.use(`${PREFIX}/ocr`, auth, csrf, Ocr);
   app.use(`${PREFIX}/ocr-car`, upload, OcrCar);
 
