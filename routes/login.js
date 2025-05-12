@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
@@ -10,9 +11,8 @@ const { mailProducer } = require('../utils/rabbitmq');
 const svgCaptcha = require('svg-captcha');
 const jwt = require('jsonwebtoken');
 const { setKey, getKey } = require('../utils/redis');
-require('dotenv').config();
 const { v4 } = require('uuid');
-
+// 生成图形验证码
 router.get('/captcha', (req, res, next) => {
   try {
     const captcha = svgCaptcha.createMathExpr({
@@ -23,12 +23,11 @@ router.get('/captcha', (req, res, next) => {
       background: '#f0f2f5'
     });
     
-    // 存储到Redis，有效期5分钟
-    console.log(`captcha:${req.sessionID}`);
-    setKey(`captcha:${req.sessionID}`,  captcha.text, 300)
+    const captchaKey = `captcha_key_${Date.now()}`;
+    setKey(captchaKey,  captcha.text, 300);
     
     res.type('svg');
-    success(res, { captcha: captcha.data }, '')
+    success(res, { captchaKey, captcha: captcha.data }, '');
   } catch(error) {
     fail(res, error)
   }
@@ -83,11 +82,10 @@ router.post('/login', async function(req, res, next) {
 // 用户注册
 router.post('/register', async function(req, res, next) {
 
-  const { captcha } = req.body;
+  const { captcha, captchaKey } = req.body;
 
   // 验证码校验
-  const storedCaptcha = await getKey(`captcha:${req.sessionID}`);
-  console.log('获取redis中的验证码：', storedCaptcha);
+  const storedCaptcha = await getKey(captchaKey);
   if (!storedCaptcha || storedCaptcha !== captcha.toLowerCase()) {
     return res.status(400).json({ code: 400, message: '验证码错误' });
   }
@@ -119,7 +117,7 @@ router.post('/register', async function(req, res, next) {
 
     // await mailProducer(msg);
   
-    success(res,'创建用户成功。', user, 201);
+    success(res, user, '创建用户成功。');
   } catch(error){
     fail(res,error);
   }

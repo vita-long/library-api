@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+require('dotenv').config();
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const logger = require('morgan');
@@ -7,9 +8,7 @@ const cors = require('cors');
 const { consumer } = require('./utils/consumer');
 const { routers } = require('./routes');
 const { csrfProtect } = require('./utils/csrf');
-const { CSRF_TOKEN_EXPIRATION } = require('./constants');
-
-require('dotenv').config();
+const { SESSION_EXPIRATION } = require('./constants');
 
 const app = express();
 
@@ -41,7 +40,7 @@ app.use((req, res, next) => {
   next();
 })
 
-// 会话配置（CSRF 依赖会话）
+// session 会话
 app.use(session({
   secret: '1111',
   resave: false,
@@ -49,7 +48,7 @@ app.use(session({
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'Lax',
-    maxAge: CSRF_TOKEN_EXPIRATION
+    maxAge: SESSION_EXPIRATION
   }
 }));
 

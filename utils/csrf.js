@@ -1,5 +1,5 @@
 const csrf = require('csrf');
-const { CSRF_TOKEN_EXPIRATION } = require('../constants');
+const { CSRF_TOKEN_EXPIRATION } = require('../constants/csrf');
 const { getKey, setKey } = require('./redis');
 const tokens = new csrf();
 
@@ -8,7 +8,6 @@ const CSRF_TOKEN_KEY = 'csrf_token'
 const csrfProtect = (app) => {
   app.use(async (req, res, next) => {
 
-    // let csrfData = req.session.csrfData;
     let csrfData = await getKey(CSRF_TOKEN_KEY);
     const now = Date.now();
 
@@ -17,7 +16,6 @@ const csrfProtect = (app) => {
         secret: tokens.secretSync(),
         timestamp: now
       };
-      // req.session.csrfData = csrfData;
       await setKey(CSRF_TOKEN_KEY, csrfData, CSRF_TOKEN_EXPIRATION)
     }
 
