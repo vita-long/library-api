@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Book, UserSubscribeBook } = require('../../models');
+const { sequelize, Book, UserSubscribeBook, BorrowBook } = require('../../models');
 const { Op } = require('sequelize');
 const { generateId } = require('../../utils/generateId');
 const { NotFoundError, success, fail } = require('../../utils/response');
@@ -40,6 +40,7 @@ router.get('/', async function(req, res, next) {
       books = await Book.findAndCountAll(condition);
       // 查询书籍收藏信息
       const bookCodes = await getBookSubscribe(req);
+      console.log(bookCodes);
 
       books = await getFinalBooks(books, bookCodes);
       
@@ -54,8 +55,9 @@ router.get('/', async function(req, res, next) {
 // 查询单个书籍
 router.get('/:id', async function(req, res, next) {
   try{
-    const book = await getBook(req);
-    success(res, book, '查询成功')
+    const { id } = req.params;
+    const book = await getBorrowBook(id);
+    success(res, book, '查询成功');
   }catch(error) {
     fail(res, error)
   }
@@ -75,6 +77,23 @@ router.post('/', async function(req, res, next) {
 
   }catch(error) {
     fail(res, error)
+  }
+})
+
+// 借阅书籍
+router.post('/borrow', async function(req, res, next) {
+  const { userCode } = req.userInfo;
+  const { endDate, id } = req.body;
+  const book = await BorrowBook.findOne({
+    where: {
+      userCode, bookId: id
+    }
+  });
+  if (book) {
+    success(res, null, '当前书籍已被借阅');
+  } else {
+    const userBorrowBook = await BorrowBook.create({ userCode, bookId: id, endDate });
+    success(res, userBorrowBook, '借阅成功');
   }
 })
 
@@ -154,11 +173,12 @@ router.post('/toggle-favorite/:bookCode', async (req, res) => {
     })
     if (book) {
       book.destroy();
-      success(res, false);
+      success(res, true);
     } else {
       const userSubscribeBook = await UserSubscribeBook.create({ userCode, bookCode });
       success(res, userSubscribeBook, '收藏成功');
     }
+    await delKey(CACHE_KEY_PREFIX);
   }catch(error) {
     fail(res, error)
   }
@@ -209,6 +229,28 @@ async function getFinalBooks(books, bookCodes) {
       isFavorite: bookCodes?.includes(book.bookCode)
     }))
   }
+}
+
+// 查询借阅书籍
+async function getBorrowBook(id) {
+  const book = await Book.findOne({
+    where: { id },
+    attributes: {
+      include: [
+        [
+          sequelize.literal(`(
+            SELECT COUNT(*)
+            FROM borrow_books
+            WHERE 
+              book_id = Book.id
+              AND returned = false
+          ) > 0`),
+          'isBorrow'
+        ]
+      ]
+    }
+  })
+  return book;
 }
 
 function filterBody(req) {
