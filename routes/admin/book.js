@@ -56,7 +56,7 @@ router.get('/', async function(req, res, next) {
 router.get('/:id', async function(req, res, next) {
   try{
     const { id } = req.params;
-    const book = await getBorrowBook(id);
+    const book = await getBorrowBook(req, id);
     success(res, book, '查询成功');
   }catch(error) {
     fail(res, error)
@@ -232,25 +232,25 @@ async function getFinalBooks(books, bookCodes) {
 }
 
 // 查询借阅书籍
-async function getBorrowBook(id) {
-  const book = await Book.findOne({
-    where: { id },
-    attributes: {
-      include: [
-        [
-          sequelize.literal(`(
-            SELECT COUNT(*)
-            FROM borrow_books
-            WHERE 
-              book_id = Book.id
-              AND returned = false
-          ) > 0`),
-          'isBorrow'
-        ]
-      ]
-    }
+async function getBorrowBook(req, id) {
+  const book = await Book.findByPk(id, {
+    include: [{
+      model: BorrowBook,
+      as: 'borrowRecords',
+      attributes: ['returned', 'end_date'],
+      where: {
+        user_code: req?.userInfo?.userCode
+      }
+    }]
   })
-  return book;
+  const newBook = book.get({ plain: true });
+  const result = {
+    ...newBook,
+    isBorrow: !newBook.borrowRecords?.[0]?.returned,
+    borrowDate: newBook.borrowRecords?.[0]?.end_date,
+  }
+  delete result.borrowRecords;
+  return result;
 }
 
 function filterBody(req) {
